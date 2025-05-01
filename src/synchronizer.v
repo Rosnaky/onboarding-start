@@ -26,7 +26,7 @@ module synchronizer (
     end
 
     reg [15:0] shift_reg;
-    reg [3:0] num_bits;
+    reg [4:0] num_bits;
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
