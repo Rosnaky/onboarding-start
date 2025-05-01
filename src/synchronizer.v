@@ -17,7 +17,7 @@ module synchronizer (
 
     reg[1:0] copi_sync, n_cs_sync, sclk_sync;
 
-    always @(postedge clk) begin
+    always @(posedge clk) begin
         copi_sync <= {copi_sync[0], copi};
         n_cs_sync <= {n_cs_sync[0], n_cs};
         sclk_sync <= {sclk_sync[0], sclk};
@@ -26,7 +26,7 @@ module synchronizer (
     reg [15:0] shift_reg;
     reg [3:0] num_bits;
 
-    always @(postedge clk or negedge rst_n) begin
+    always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             shift_reg <= 16'd0;
             address <= 7'd0;
