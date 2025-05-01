@@ -41,4 +41,4 @@ pinout:
   uio[7]: "OUT_F"
 
   # Do not change!
-  yaml_version: 6
+yaml_version: 6
