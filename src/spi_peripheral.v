@@ -26,11 +26,12 @@ module spi_peripheral (
             en_reg_pwm_15_8 <= 8'd0;
             pwm_duty_cycle <= 8'd0;
         end else if (write_en) begin
-            en_reg_out_7_0 <= (address == 7'h00) ? data : 8'h00; 
-            en_reg_out_15_8 <= (address == 7'h01) ? data : 8'h00; 
-            en_reg_pwm_7_0 <= (address == 7'h02) ? data : 8'h00; 
-            en_reg_pwm_15_8 <= (address == 7'h03) ? data : 8'h00; 
-            pwm_duty_cycle <= (address == 7'h04) ? data : 8'h00;
+            7'h00: en_reg_out_7_0 <= data;
+            7'h01: en_reg_out_15_8 <= data;
+            7'h02: en_reg_pwm_7_0 <= data;
+            7'h03: en_reg_pwm_15_8 <= data;
+            7'h04: pwm_duty_cycle <= data;
+            default:;
         end
     end
 

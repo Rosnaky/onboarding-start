@@ -39,12 +39,13 @@ module synchronizer (
             if (n_cs_sync == 2'b10) begin
                 shift_reg <= 16'd0;
                 num_bits <= 5'd0;
+                write_en <= 1'd0;
                 
-
             end else if (n_cs_sync == 2'b00 && sclk_sync == 2'b01) begin
                 if (num_bits < 16) begin
                     shift_reg <= {shift_reg[14:0], copi_sync[1]};
                     num_bits <= num_bits+1;
+                    write_en <= 1'b0;
                 end
             end
 
@@ -57,7 +58,6 @@ module synchronizer (
                 end else begin
                     write_en <= 1'b0;
                 end
-                num_bits <= 0;
             end
         end
     end
