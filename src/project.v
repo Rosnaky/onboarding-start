@@ -26,6 +26,7 @@ module tt_um_uwasic_onboarding_ronak_patel (
     wire copi, n_cs, sclk;
     wire [6:0] address;
     wire [7:0] data;
+    wire write_en;
 
     // All output pins must be assigned. If not used, assign to 0.
     assign uio_oe = 8'hFF;
@@ -49,6 +50,7 @@ module tt_um_uwasic_onboarding_ronak_patel (
         .rst_n(rst_n),
         .address(address),
         .data(data),
+        .write_en(write_en),
         .en_reg_out_7_0(en_reg_out_7_0),
         .en_reg_out_15_8(en_reg_out_15_8),
         .en_reg_pwm_7_0(en_reg_pwm_7_0),
@@ -63,7 +65,8 @@ module tt_um_uwasic_onboarding_ronak_patel (
         .n_cs(n_cs),
         .sclk(sclk),
         .address(address),
-        .data(data)
+        .data(data),
+        .write_en(write_en)
     );
 
     // List all unused inputs to prevent warnings

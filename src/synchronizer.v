@@ -11,8 +11,10 @@ module synchronizer (
     input wire n_cs,
     input wire sclk,
 
-    output wire [6:0] address,
-    output wire [7:0] data,
+    output reg [6:0] address,
+    output reg [7:0] data,
+
+    output reg write_en
 );
 
     reg[1:0] copi_sync, n_cs_sync, sclk_sync;
@@ -31,6 +33,7 @@ module synchronizer (
             shift_reg <= 16'd0;
             address <= 7'd0;
             data <= 8'd0;
+            write_en <= 1'd0;
         end else begin
             if (!n_cs_sync[1]) begin
                 if (sclk_sync == 2'b01 && num_bits < 16) begin
@@ -43,6 +46,9 @@ module synchronizer (
                 if (num_bits == 16 && shift_reg[15] == 1'b1) begin
                     address <= shift_reg[14:8];
                     data <= shift_reg[7:0];
+                    write_en <= 1'b1;
+                end else begin
+                    write_en <= 1'b0;
                 end
                 num_bits <= 0;
             end
