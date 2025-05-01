@@ -1,7 +1,7 @@
 
 `default_nettype none
 
-module tt_um_onboarding_ronak_patel (
+module tt_um_uwasic_onboarding_ronak_patel (
 
     assign uio_oe = 8'hFF;
 

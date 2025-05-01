@@ -4,7 +4,7 @@ project:
   title: "ASIC Onboarding Project - Ronak Patel"  
   author: "Ronak Patel"  
   description: "SPI-controlled PWM peripheral for Tiny Tapeout."  
-  top_module: "tt_uw_uwasic_onboarding_ronak_patel"  # Match your top module name  
+  top_module: "tt_um_uwasic_onboarding_ronak_patel"  # Match your top module name  
   language:     "Verilog" # other examples include SystemVerilog, Amaranth, VHDL, etc
   clock_hz:     0
   source_files:  
