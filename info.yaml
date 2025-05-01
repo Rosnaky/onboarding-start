@@ -11,6 +11,7 @@ project:
     - spi_peripheral.v
     - pwm_peripheral.v  
     - project.v
+    - synchronizer.v
 
   tiles: "1x1" 
 
