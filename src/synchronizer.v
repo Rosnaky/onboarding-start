@@ -34,13 +34,20 @@ module synchronizer (
             address <= 7'd0;
             data <= 8'd0;
             write_en <= 1'd0;
+            num_bits <= 5'd0;
         end else begin
-            if (!n_cs_sync[1]) begin
-                if (sclk_sync == 2'b01 && num_bits < 16) begin
+            if (n_cs_sync == 2'b10) begin
+                shift_reg <= 16'd0;
+                num_bits <= 5'd0;
+                
+
+            end else if (n_cs_sync == 2'b00 && sclk_sync == 2'b01) begin
+                if (num_bits < 16) begin
                     shift_reg <= {shift_reg[14:0], copi_sync[1]};
                     num_bits <= num_bits+1;
                 end
             end
+
 
             if (n_cs_sync == 2'b01) begin
                 if (num_bits == 16 && shift_reg[15] == 1'b1) begin
