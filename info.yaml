@@ -8,7 +8,7 @@ project:
   language:     "Verilog" # other examples include SystemVerilog, Amaranth, VHDL, etc
   clock_hz:     0
   source_files:  
-    - "spi peripheral"
+    - spi_peripheral.v
     - pwm_peripheral.v  
     - project.v
 
