@@ -23,7 +23,7 @@ You can also include images in this folder and reference them in the markdown. E
         - 8 Bits (0-255)
         - Proportion that is high during period
 
-When pwm mode is on and out is on for a peripheral, the duty cycle sends pulses.
+When pwm mode is high and out is high for a channel, the duty cycle sends pulses.
 
 ## How to test
 
