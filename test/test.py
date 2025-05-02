@@ -3,10 +3,12 @@
 
 import cocotb
 from cocotb.clock import Clock
+import cocotb.clock
 from cocotb.triggers import RisingEdge
 from cocotb.triggers import ClockCycles
 from cocotb.types import Logic
 from cocotb.types import LogicArray
+import cocotb.utils
 
 async def await_half_sclk(dut):
     """Wait for the SCLK signal to go high or low."""
@@ -83,6 +85,94 @@ async def send_spi_transaction(dut, r_w, address, data):
     await ClockCycles(dut.clk, 600)
     return ui_in_logicarray(ncs, bit, sclk)
 
+async def get_period_ns(dut, timeout=0.5*1000000):
+    
+    start = cocotb.utils.get_sim_time(units="ns")
+    # get low
+    dut._log.info("Await stabilize low")
+    while (dut.uo_out.value.integer & 1 == 1):
+        if (cocotb.utils.get_sim_time(units="ns") - start > timeout):
+            return -2
+        
+        await ClockCycles(dut.clk, 5)
+    
+    start = cocotb.utils.get_sim_time(units="ns")
+    # get high
+    dut._log.info("Await first rising edge")
+    while (dut.uo_out.value.integer & 1 == 0):
+        if (cocotb.utils.get_sim_time(units="ns") - start > timeout):
+            return -1
+
+        await ClockCycles(dut.clk, 5)
+
+    t1 = cocotb.utils.get_sim_time(units="ns")
+    
+    start = cocotb.utils.get_sim_time(units="ns")
+    
+    # get low
+    dut._log.info("Await stabilize low")
+    dut._log.info(t1)
+    while (dut.uo_out.value.integer & 1 == 1):
+        if (cocotb.utils.get_sim_time(units="ns") - start > timeout):
+            return -2
+        await ClockCycles(dut.clk, 5)
+    
+    start = cocotb.utils.get_sim_time(units="ns")
+    # get high
+    dut._log.info("Await second rising edge")
+    while (dut.uo_out.value.integer & 1 == 0):
+        if (cocotb.utils.get_sim_time(units="ns") - start > timeout):
+            return -1
+        await ClockCycles(dut.clk, 5)
+
+    t2 = cocotb.utils.get_sim_time(units="ns")
+    
+    return t2-t1
+
+async def get_duty_cycle(dut, timeout=0.5*1000000):
+    start = cocotb.utils.get_sim_time(units="ns")
+    # get low
+    dut._log.info("Await stabilize low")
+    while (dut.uo_out.value.integer & 1 == 1):
+        if (cocotb.utils.get_sim_time(units="ns") - start > timeout):
+            return -2
+        
+        await ClockCycles(dut.clk, 5)
+    
+    start = cocotb.utils.get_sim_time(units="ns")
+    # get high
+    dut._log.info("Await first rising edge")
+    while (dut.uo_out.value.integer & 1 == 0):
+        if (cocotb.utils.get_sim_time(units="ns") - start > timeout):
+            return -1
+
+        await ClockCycles(dut.clk, 5)
+
+    t1 = cocotb.utils.get_sim_time(units="ns")
+    start = cocotb.utils.get_sim_time(units="ns")
+    
+    # get low
+    dut._log.info("Await stabilize low")
+    dut._log.info(t1)
+    while (dut.uo_out.value.integer & 1 == 1):
+        if (cocotb.utils.get_sim_time(units="ns") - start > timeout):
+            return -2
+        await ClockCycles(dut.clk, 5)
+    
+    t3 = cocotb.utils.get_sim_time(units="ns")
+    start = cocotb.utils.get_sim_time(units="ns")
+    # get high
+    dut._log.info("Await second rising edge")
+    while (dut.uo_out.value.integer & 1 == 0):
+        if (cocotb.utils.get_sim_time(units="ns") - start > timeout):
+            return -1
+        await ClockCycles(dut.clk, 5)
+
+    t2 = cocotb.utils.get_sim_time(units="ns")
+    
+    return ((t3-t1)/(t2-t1))*100
+
+
 @cocotb.test()
 async def test_spi(dut):
     dut._log.info("Start SPI test")
@@ -151,11 +241,101 @@ async def test_spi(dut):
 
 @cocotb.test()
 async def test_pwm_freq(dut):
-    # Write your test here
+    dut._log.info("Start PWM frequency tests")
+
+    # Set the clock period to 100 ns (10 MHz)
+    clock = Clock(dut.clk, 100, units="ns")
+    cocotb.start_soon(clock.start())
+
+    # Reset
+    dut._log.info("Reset")
+    dut.ena.value = 1
+    ncs = 1
+    bit = 0
+    sclk = 0
+    dut.ui_in.value = ui_in_logicarray(ncs, bit, sclk)
+    dut.rst_n.value = 0
+    await ClockCycles(dut.clk, 5)
+    dut.rst_n.value = 1
+    await ClockCycles(dut.clk, 5)
+
+    dut._log.info("Test project behavior")
+    dut._log.info("Write transaction, address 0x02, data 0xF0")
+    await send_spi_transaction(dut, 1, 0x00, 0x01)
+    await send_spi_transaction(dut, 1, 0x02, 0x01)
+    await send_spi_transaction(dut, 1, 0x04, 0x80)
+    await ClockCycles(dut.clk, 1000)
+
+    period_ns = await get_period_ns(dut)
+    freq_hz = (1000000000/period_ns)
+
+    assert 2970 <= freq_hz and freq_hz <= 3030, f"Frequency invalid, got {freq_hz}"
+
+    # max duty cycle
+    await send_spi_transaction(dut, 1, 0x04, 0xFF)
+    await ClockCycles(dut.clk, 1000)
+
+    period_ns = await get_period_ns(dut)
+
+    assert period_ns == -2, f"Frequency invalid, got {freq_hz}"
+
+    # min duty cycle
+    await send_spi_transaction(dut, 1, 0x04, 0x00)
+    await ClockCycles(dut.clk, 1000)
+
+    period_ns = await get_period_ns(dut)
+
+    assert period_ns == -1, f"Frequency invalid, got {freq_hz}"
+
     dut._log.info("PWM Frequency test completed successfully")
 
 
 @cocotb.test()
 async def test_pwm_duty(dut):
-    # Write your test here
+
+    dut._log.info("Start PWM duty (haha) tests")
+
+    # Set the clock period to 100 ns (10 MHz)
+    clock = Clock(dut.clk, 100, units="ns")
+    cocotb.start_soon(clock.start())
+
+    # Reset
+    dut._log.info("Reset")
+    dut.ena.value = 1
+    ncs = 1
+    bit = 0
+    sclk = 0
+    dut.ui_in.value = ui_in_logicarray(ncs, bit, sclk)
+    dut.rst_n.value = 0
+    await ClockCycles(dut.clk, 5)
+    dut.rst_n.value = 1
+    await ClockCycles(dut.clk, 5)
+
+    dut._log.info("Test project behavior")
+    dut._log.info("Write transaction, address 0x02, data 0xF0")
+    await send_spi_transaction(dut, 1, 0x00, 0x01)
+    await send_spi_transaction(dut, 1, 0x02, 0x01)
+    await send_spi_transaction(dut, 1, 0x04, 0x7F)
+    await ClockCycles(dut.clk, 1000)
+
+    duty_cycle = await get_duty_cycle(dut)
+
+    assert 49 <= duty_cycle and duty_cycle <= 51, f"Duty (haha) cycle invalid, got {duty_cycle}"
+
+    # max duty cycle
+    await send_spi_transaction(dut, 1, 0x04, 0xFF)
+    await ClockCycles(dut.clk, 1000)
+
+    period_ns = await get_period_ns(dut)
+
+    assert period_ns == -2, f"Duty (haha) cycle invalid, got {duty_cycle}"
+
+    # min duty cycle
+    await send_spi_transaction(dut, 1, 0x04, 0x00)
+    await ClockCycles(dut.clk, 1000)
+
+    period_ns = await get_period_ns(dut)
+
+    assert period_ns == -1, f"Duty (haha) cycle invalid, got {duty_cycle}"
+
     dut._log.info("PWM Duty Cycle test completed successfully")
