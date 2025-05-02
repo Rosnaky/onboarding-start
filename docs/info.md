@@ -9,11 +9,34 @@ You can also include images in this folder and reference them in the markdown. E
 
 ## How it works
 
-It works
+#### SPI Peripheral
+- Configuration:
+    - COPI (control out-peripheral in): data transmission line
+    - nCS: chip select, active low
+    - sCLK: serial clock
+
+16 Channels, each one has an out bit and a pwm mode bit.
+
+#### PWM Peripheral 
+- Configuration:
+    - Duty Cycle:
+        - 8 Bits (0-255)
+        - Proportion that is high during period
+
+When pwm mode is on and out is on for a peripheral, the duty cycle sends pulses.
 
 ## How to test
 
-Yeah test make sure it works
+**Yeah tests make sure it works.**
+
+Tests defined in 
+```test/test.py```
+
+- Checks for appropriate transmission over SPI
+- Frequency of spi is 3 kHz as expected
+    - Testing 0%, 50%, 100% duty cycles
+- Duty cycle of pwm is as expected
+    - Testing 0%, 50%, 100% duty cycles
 
 ## External hardware
 
